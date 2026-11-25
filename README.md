@@ -2,6 +2,10 @@
 
 **Let AI assistants and scripts *use* credentials without *seeing* them.**
 
+*Produced under the supervision of [VanePulse](https://github.com/VanePulse) ·
+implemented by Claude (Anthropic) · reviewed automatically by ReviewCli
+(a VanePulse product). See [Credits](#credits).*
+
 `with-secrets` runs a command with credentials from a local store injected as
 environment variables, and masks their values in everything the command
 prints. Secret values are encrypted at rest.
@@ -12,6 +16,10 @@ with-secrets redis.dev -- 'redis-cli -h "$REDIS_DEV_HOST" -p "$REDIS_DEV_PORT" p
 
 Linux and macOS. MIT licensed. See [SECURITY.md](SECURITY.md) for what it
 does and does not protect against.
+
+Windows is not supported yet. Pull requests that add it are welcome: a key
+backend (for example DPAPI), a locking and terminal implementation, and an
+installer would be needed — open an issue first to discuss the design.
 
 ## Install
 
@@ -277,6 +285,12 @@ tools/release.sh dist                           # release archives + SHA256SUMS
 Tests run against fake stores only. See [test/BASELINE.md](test/BASELINE.md)
 for how the tests map to the behaviour of the previous implementation, and
 [CHANGELOG.md](CHANGELOG.md) for what changed.
+
+## Credits
+
+GSeal was produced under the supervision of [VanePulse](https://github.com/VanePulse)
+throughout, implemented by Claude (Anthropic), and reviewed automatically by
+ReviewCli, a VanePulse product.
 
 ## License
 

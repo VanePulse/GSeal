@@ -2,11 +2,15 @@
 
 All notable changes are listed here. Versions follow semantic versioning.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-11-25)
 
-First release of GSeal, a Go rewrite of the Node.js `with-secrets` tool
-(VaneSecret). Stores and backup bundles of the previous implementation are
-used as they are, in both directions.
+First release of GSeal, a Go rewrite of the Node.js `with-secrets` tool.
+Stores and backup bundles of the previous implementation are used as they
+are, in both directions.
+
+Produced under the supervision of VanePulse throughout, implemented by
+Claude (Anthropic), and reviewed automatically by ReviewCli, a VanePulse
+product.
 
 ### Kept from the previous implementation
 
