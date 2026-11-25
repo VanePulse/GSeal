@@ -1,0 +1,20 @@
+# build output
+/with-secrets
+/gseal
+/dist/
+*.test
+*.out
+
+# never commit stores, keys or bundles
+env/
+logs/
+*.cred
+*.wsbk
+# ...except the interop fixtures: fake data written by VaneSecret (see testdata/interop/README.md)
+!/testdata/interop/*.wsbk
+
+# editors
+.idea/
+.vscode/
+*.swp
+.DS_Store

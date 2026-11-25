@@ -1,0 +1,30 @@
+name: Release
+
+# Run by pushing a tag v<version> (by the maintainer). Builds the four
+# archives and SHA256SUMS and attaches them to a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: test
+        env:
+          GSEAL_TEST_BACKEND: testfile
+        run: go test -mod=vendor -count=1 ./...
+      - name: build
+        run: bash tools/release.sh dist "${GITHUB_REF_NAME#v}"
+      - name: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/*.tar.gz dist/SHA256SUMS --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md

@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      # The runners have no systemd-creds --user (ubuntu ships systemd 255,
+      # macOS none), so the end-to-end suites use the test-only file backend.
+      # The systemd-creds suites and the Go -> VaneSecret interop are run on a
+      # Linux machine with systemd >= 256 (see test/BASELINE.md).
+      GSEAL_TEST_BACKEND: testfile
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: false
+      # TestAgainstNode compares NFC with Node on every code point of the
+      # tables' Unicode version (16.0): Node 24 knows Unicode 16 or newer.
+      - uses: actions/setup-node@v5
+        if: runner.os == 'Linux'
+        with:
+          node-version: "24"
+      # install.sh uses flock(1) for its kernel lock; the lock tests (M4.I10)
+      # need it. macOS has no flock(1) by default.
+      - name: flock (macOS)
+        if: runner.os == 'macOS'
+        run: brew install flock && flock --version
+      - name: gofmt
+        run: test -z "$(gofmt -l cmd internal test)"
+      - name: vet
+        run: go vet ./... && go vet -tags gsealtest ./...
+      - name: test (unit, m1, e2e, interop golden files, M2-M4)
+        run: go test -mod=vendor -count=1 -v ./... 2>&1 | tee test.log; test "${PIPESTATUS[0]}" = 0
+      - name: NFC against Node (required on Linux)
+        if: runner.os == 'Linux'
+        run: node -p '"node " + process.version + ", Unicode " + process.versions.unicode' && GSEAL_REQUIRE_NODE=1 go test -mod=vendor -count=1 -v -run TestAgainstNode ./internal/norm
+      - name: summary
+        if: always()
+        run: |
+          echo "passed checks: $(grep -c ': PASS  ' test.log || true)"
+          echo "failed checks: $(grep -c ': FAIL  ' test.log || true)"
+          grep -E '^--- SKIP' -A1 test.log || true
+      - name: release build
+        if: runner.os == 'Linux'
+        run: bash tools/release.sh dist && cat dist/SHA256SUMS
